@@ -12,17 +12,15 @@
             font-family: Arial, sans-serif;
             overflow: hidden;
         }
-    
+        
         #map {
-            flex: 0 0 50%;
-            height: 50vh;
-            min-height: 300px;  /* 최소 높이 추가 */
+            flex: 1;
+            min-height: 50vh;
         }
-    
+        
         #schedule {
             flex: 1;
             overflow-y: auto;
-            -webkit-overflow-scrolling: touch;
             padding: 20px;
             box-sizing: border-box;
             background-color: #f9f9f9;
@@ -130,9 +128,8 @@
             }
             
             #map {
-                flex: 0 0 50%;
-                height: 50vh;
-                min-height: 250px;  /* 모바일에서의 최소 높이 */
+                flex: 2;
+                height: 100vh;
             }
             
             #schedule {
@@ -175,11 +172,11 @@
             map = new google.maps.Map(document.getElementById('map'), {
                 zoom: 10,
                 center: {lat: -8.5, lng: 115.2},
-                gestureHandling: 'auto',  // 'greedy' 대신 'auto' 사용
+                gestureHandling: 'auto',
                 mapTypeControl: false,
                 streetViewControl: false,
                 fullscreenControl: false,
-                zoomControl: true,  // 줌 컨트롤은 활성화
+                zoomControl: true,
                 styles: [
                     {
                         featureType: "poi",
@@ -295,15 +292,12 @@
         
             var table = document.getElementById('scheduleTable');
             var rows = table.getElementsByTagName('tr');
-            var headerRow = rows[0].outerHTML;  // 테이블 헤더 저장
-        
-            // 테이블 내용 초기화
-            table.innerHTML = headerRow;
-        
-            // 선택된 날짜에 해당하는 행만 다시 추가
+            
             for(var i = 1; i < rows.length; i++){
                 if(day === 0 || rows[i].cells[0].innerText.includes(day + '일차')){
-                    table.innerHTML += rows[i].outerHTML;
+                    rows[i].style.display = '';
+                } else {
+                    rows[i].style.display = 'none';
                 }
             }
         
