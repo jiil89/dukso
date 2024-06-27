@@ -5,22 +5,48 @@
     <style>
         body {
             display: flex;
+            flex-direction: column;
             height: 100vh;
             margin: 0;
             font-family: Arial, sans-serif;
         }
         #map {
-            flex: 2;
-            height: 100%;
+            flex: 1;
+            height: 50vh;
         }
         #schedule {
             flex: 1;
             padding: 20px;
             box-sizing: border-box;
             background-color: #f9f9f9;
-            border-left: 1px solid #ccc;
             overflow-y: auto;
         }
+    
+        @media (min-width: 768px) {
+            body {
+                flex-direction: row;
+            }
+            #map {
+                flex: 2;
+                height: 100vh;
+            }
+            #schedule {
+                flex: 1;
+                height: 100vh;
+                border-left: 1px solid #ccc;
+            }
+        }
+    
+        @media (max-width: 767px) {
+            h1 {
+                font-size: 24px;
+            }
+            th, td {
+                padding: 10px;
+                font-size: 14px;
+            }
+        }
+
         h1 {
             text-align: center;
             cursor: pointer;
@@ -95,21 +121,7 @@
             z-index: 1000;
             box-shadow: 0 2px 4px rgba(0,0,0,0.2);
         }
-        
-        /* Mobile View */
-        @media (max-width: 768px) {
-            body {
-                flex-direction: column;
-            }
-            #map {
-                height: 50%;
-            }
-            #schedule {
-                height: 50%;
-                border-left: none;
-                border-top: 1px solid #ccc;
-            }
-        }
+
     </style>
     <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyC-1LZliC7H4Cnxpt0ENhUKjR5ks0dQg-w&libraries=places"></script>
     <script>
