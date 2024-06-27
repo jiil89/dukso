@@ -19,12 +19,9 @@
         }
         
         #schedule {
-            flex: 1;
-            overflow-y: auto;
+            /* 기존 스타일 유지 */
             -webkit-overflow-scrolling: touch; /* iOS 스크롤 개선 */
-            padding: 20px;
-            box-sizing: border-box;
-            background-color: #f9f9f9;
+            overflow-y: auto; /* 항상 스크롤 가능하도록 설정 */
         }
     
         h1 {
@@ -268,6 +265,29 @@
             markers.forEach(m => m.marker.setMap(map));
         }
 
+        function updateScroll() {
+            var scheduleDiv = document.getElementById('schedule');
+            
+            // 스크롤을 항상 활성화
+            scheduleDiv.style.overflowY = 'auto';
+        
+            // 컨텐츠가 div보다 길 경우에만 스크롤바 표시
+            if (scheduleDiv.scrollHeight > scheduleDiv.clientHeight) {
+                scheduleDiv.style.overflowY = 'scroll';
+            } else {
+                scheduleDiv.style.overflowY = 'auto';
+            }
+        
+            // 스크롤을 맨 위로 이동
+            scheduleDiv.scrollTop = 0;
+        
+            // 강제로 레이아웃 재계산
+            scheduleDiv.style.display = 'none';
+            scheduleDiv.offsetHeight; // 강제 리플로우
+            scheduleDiv.style.display = '';
+        }
+
+        
         function filterByDay(){
             var day = parseInt(document.getElementById('dayFilter').value);
             markers.forEach(m => {
@@ -277,20 +297,6 @@
                     m.marker.setMap(null);
                 }
             });
-        
-            if(day !== 0){
-                var dayLocations = locations.filter(l => l.day.includes(day));
-                if(dayLocations.length > 0){
-                    geocoder.geocode({'address': dayLocations[0].address}, function(results, status) {
-                        if (status === 'OK') {
-                            map.setCenter(results[0].geometry.location);
-                            map.setZoom(12);
-                        }
-                    });
-                }
-            } else {
-                resetMap();
-            }
         
             var table = document.getElementById('scheduleTable');
             var rows = table.getElementsByTagName('tr');
@@ -303,22 +309,26 @@
                 }
             }
         
-            // 스크롤 재계산 및 적용
+            // 즉시 스크롤 업데이트
             updateScroll();
-        }
         
-        function updateScroll() {
-            var scheduleDiv = document.getElementById('schedule');
-            
-            // 컨텐츠가 div보다 길 경우 스크롤 활성화
-            if (scheduleDiv.scrollHeight > scheduleDiv.clientHeight) {
-                scheduleDiv.style.overflowY = 'auto';
+            if(day !== 0){
+                var dayLocations = locations.filter(l => l.day.includes(day));
+                if(dayLocations.length > 0){
+                    geocoder.geocode({'address': dayLocations[0].address}, function(results, status) {
+                        if (status === 'OK') {
+                            map.setCenter(results[0].geometry.location);
+                            map.setZoom(12);
+                            // 지도 센터 변경 후 다시 한 번 스크롤 업데이트
+                            setTimeout(updateScroll, 100);
+                        }
+                    });
+                }
             } else {
-                scheduleDiv.style.overflowY = 'hidden';
+                resetMap();
+                // 지도 리셋 후 다시 한 번 스크롤 업데이트
+                setTimeout(updateScroll, 100);
             }
-        
-            // 스크롤을 맨 위로 이동
-            scheduleDiv.scrollTop = 0;
         }
     </script>
 </head>
