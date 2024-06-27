@@ -173,7 +173,19 @@
             map = new google.maps.Map(document.getElementById('map'), {
                 zoom: 10,
                 center: {lat: -8.5, lng: 115.2},
-                gestureHandling: 'greedy'  // 이 옵션을 추가
+                gestureHandling: 'greedy',
+                // 아래 옵션들을 추가합니다
+                mapTypeControl: false,
+                streetViewControl: false,
+                fullscreenControl: false,
+                zoomControl: false
+                styles: [
+                    {
+                        featureType: "poi",
+                        elementType: "labels",
+                        stylers: [{ visibility: "off" }]
+                    }
+                ]
             });
             geocoder = new google.maps.Geocoder();
             locations.forEach((l,i) => geocodeAddress(l,i));
@@ -265,7 +277,7 @@
                     m.marker.setMap(null);
                 }
             });
-
+        
             if(day !== 0){
                 var dayLocations = locations.filter(l => l.day.includes(day));
                 if(dayLocations.length > 0){
@@ -279,15 +291,26 @@
             } else {
                 resetMap();
             }
-
-            var rows = document.getElementById('scheduleTable').getElementsByTagName('tr');
+        
+            var table = document.getElementById('scheduleTable');
+            var rows = table.getElementsByTagName('tr');
+            var headerRow = rows[0].outerHTML;  // 테이블 헤더 저장
+        
+            // 테이블 내용 초기화
+            table.innerHTML = headerRow;
+        
+            // 선택된 날짜에 해당하는 행만 다시 추가
             for(var i = 1; i < rows.length; i++){
                 if(day === 0 || rows[i].cells[0].innerText.includes(day + '일차')){
-                    rows[i].style.display = '';
-                } else {
-                    rows[i].style.display = 'none';
+                    table.innerHTML += rows[i].outerHTML;
                 }
             }
+        
+            // 스크롤 재계산을 위해 setTimeout 사용
+            setTimeout(function() {
+                var scheduleDiv = document.getElementById('schedule');
+                scheduleDiv.scrollTop = 0;  // 스크롤을 맨 위로 이동
+            }, 0);
         }
     </script>
 </head>
