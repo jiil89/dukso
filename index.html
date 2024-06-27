@@ -16,6 +16,7 @@
         #map {
             flex: 0 0 50%;
             height: 50vh;
+            min-height: 300px;  /* 최소 높이 추가 */
         }
     
         #schedule {
@@ -129,8 +130,9 @@
             }
             
             #map {
-                flex: 2;
-                height: 100vh;
+                flex: 0 0 50%;
+                height: 50vh;
+                min-height: 250px;  /* 모바일에서의 최소 높이 */
             }
             
             #schedule {
@@ -173,12 +175,11 @@
             map = new google.maps.Map(document.getElementById('map'), {
                 zoom: 10,
                 center: {lat: -8.5, lng: 115.2},
-                gestureHandling: 'greedy',
-                // 아래 옵션들을 추가합니다
+                gestureHandling: 'auto',  // 'greedy' 대신 'auto' 사용
                 mapTypeControl: false,
                 streetViewControl: false,
                 fullscreenControl: false,
-                zoomControl: false
+                zoomControl: true,  // 줌 컨트롤은 활성화
                 styles: [
                     {
                         featureType: "poi",
@@ -314,7 +315,7 @@
         }
     </script>
 </head>
-<body onload="initMap()">
+<body onload="initMap()" ontouchmove="event.preventDefault();">
     <div id="map"></div>
     <div id="schedule">
         <h1 onclick="resetMap()">발리신혼여행 일정</h1>
