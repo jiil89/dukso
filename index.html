@@ -1,36 +1,46 @@
 <!DOCTYPE html>
 <html>
 <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
     <title>발리신혼여행 일정</title>
     <style>
-        body {
+       body {
+            display: -webkit-flex;
             display: flex;
+            -webkit-flex-direction: column;
             flex-direction: column;
             height: 100vh;
             margin: 0;
             font-family: Arial, sans-serif;
+            overflow: hidden;
         }
         #map {
-            flex: 1;
+            -webkit-flex: 0 0 50%;
+            flex: 0 0 50%;
             height: 50vh;
         }
         #schedule {
+            -webkit-flex: 1;
             flex: 1;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
             padding: 20px;
             box-sizing: border-box;
             background-color: #f9f9f9;
-            overflow-y: auto;
         }
     
         @media (min-width: 768px) {
             body {
+                -webkit-flex-direction: row;
                 flex-direction: row;
             }
             #map {
+                -webkit-flex: 2;
                 flex: 2;
                 height: 100vh;
             }
             #schedule {
+                -webkit-flex: 1;
                 flex: 1;
                 height: 100vh;
                 border-left: 1px solid #ccc;
@@ -46,7 +56,6 @@
                 font-size: 14px;
             }
         }
-
         h1 {
             text-align: center;
             cursor: pointer;
@@ -153,9 +162,13 @@
         };
 
         function initMap(){
-            map = new google.maps.Map(document.getElementById('map'), {zoom: 10, center: {lat: -8.5, lng: 115.2}});
+            map = new google.maps.Map(document.getElementById('map'), {
+                zoom: 10,
+                center: {lat: -8.5, lng: 115.2},
+                gestureHandling: 'greedy'  // 이 옵션을 추가
+            });
             geocoder = new google.maps.Geocoder();
-            locations.forEach((l, i) => geocodeAddress(l, i));
+            locations.forEach((l,i) => geocodeAddress(l,i));
         }
 
         function MarkerLabel(o){
