@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>발리신혼여행 일정</title>
+    <style>
+        body {
+            display: flex;
+            height: 100vh;
+            margin: 0;
+            font-family: Arial, sans-serif;
+        }
+        #map {
+            flex: 2;
+            height: 100%;
+        }
+        #schedule {
+            flex: 1;
+            padding: 20px;
+            box-sizing: border-box;
+            background-color: #f9f9f9;
+            border-left: 1px solid #ccc;
+            overflow-y: auto;
+        }
+        h1 {
+            text-align: center;
+            cursor: pointer;
+            color: #333;
+            font-size: 28px;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #4CAF50;
+        }
+        p {
+            text-align: center;
+            font-size: 0.9em;
+            margin-top: 0;
+            color: #666;
+        }
+        #dayFilter {
+            width: 100%;
+            margin-bottom: 20px;
+            padding: 10px;
+            font-size: 16px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background-color: #f8f8f8;
+            color: #333;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        #dayFilter:hover {
+            background-color: #e8e8e8;
+        }
+        table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            margin-top: 20px;
+            background-color: #fff;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        th, td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        th {
+            background-color: #4CAF50;
+            color: white;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        tr:last-child td {
+            border-bottom: none;
+        }
+        tr:hover {
+            background-color: #f5f5f5;
+            transition: background-color 0.3s ease;
+        }
+        .day1 { background-color: #E3F2FD; }
+        .day2-3 { background-color: #FFF3E0; }
+        .day4-5 { background-color: #E8F5E9; }
+        .day6 { background-color: #FCE4EC; }
+        .marker-label {
+            background-color: white;
+            border: 1px solid #000;
+            border-radius: 3px;
+            padding: 2px 5px;
+            white-space: nowrap;
+            font-size: 12px;
+            font-weight: bold;
+            position: absolute;
+            z-index: 1000;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+    </style>
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyC-1LZliC7H4Cnxpt0ENhUKjR5ks0dQg-w&libraries=places"></script>
+    <script>
+        var map,geocoder,markers=[],locations=[
+            {title:'덴파사르 공항 도착',address:'Ngurah Rai International Airport, Bali',type:'airport',day:[1]},
+            {title:'체사 짱구 - 1일차',address:'Chesa Canggu, Bali',type:'hotel',day:[1]},
+            {title:'비다다리 빌라스 - 2, 3일차',address:'Bidadari Villas, Bali',type:'hotel',day:[2,3]},
+            {title:'주메이라 - 4~5일차',address:'Jumeirah Bali',type:'hotel',day:[4,5]},
+            {title:'몽키 포레스트',address:'Monkey Forest, Ubud, Bali',type:'attraction',day:[2]},
+            {title:'알라스 하룸',address:'Alas Harum Agro Tourism, Tegalalang, Bali',type:'attraction',day:[2]},
+            {title:'바투르 산',address:'Mount Batur, Bali',type:'attraction',day:[3]},
+            {title:'우붓 시장',address:'Ubud Traditional Art Market, Ubud, Bali',type:'attraction',day:[3]},
+            {title:'워터봄 발리',address:'Waterbom Bali, Kuta, Bali',type:'waterpark',day:[6]},
+            {title:'덴파사르 공항 출발',address:'Ngurah Rai International Airport, Bali',type:'airport',day:[6]}
+        ],
+        icons={
+            airport:'✈',
+            hotel:'🏡',
+            attraction:'🏞',
+            waterpark:'🚣‍♀️'
+        },
+        dayColors = {
+            1: 'blue',
+            2: 'orange',
+            3: 'orange',
+            4: 'green',
+            5: 'green',
+            6: 'red'
+        };
+
+        function initMap(){
+            map=new google.maps.Map(document.getElementById('map'),{zoom:10,center:{lat:-8.5,lng:115.2}});
+            geocoder=new google.maps.Geocoder();
+            locations.forEach((l,i)=>geocodeAddress(l,i));
+        }
+
+        function MarkerLabel(o){
+            this.setValues(o);
+            this.div=document.createElement('div');
+            this.div.className='marker-label';
+        }
+        MarkerLabel.prototype=new google.maps.OverlayView;
+        MarkerLabel.prototype.onAdd=function(){
+            this.getPanes().overlayMouseTarget.appendChild(this.div);
+        };
+        MarkerLabel.prototype.draw=function(){
+            var projection=this.getProjection();
+            var position=projection.fromLatLngToDivPixel(this.get('position'));
+            var div=this.div;
+            div.style.left=(position.x+25)+'px';
+            div.style.top=(position.y-20)+'px';
+            div.style.display='block';
+            div.innerHTML=this.get('text');
+        };
+
+        function addMarker(l,i){
+            var marker=new google.maps.Marker({
+                position:l.position,
+                map:map,
+                icon:{
+                    path:google.maps.SymbolPath.CIRCLE,
+                    scale:15,
+                    fillColor:dayColors[l.day[0]],
+                    fillOpacity:1,
+                    strokeWeight:2,
+                    strokeColor:'#000000'
+                },
+                label:{
+                    text:icons[l.type]||icons['attraction'],
+                    fontSize:'14px',
+                    fontWeight:'bold',
+                    color:'#FFFFFF'
+                }
+            });
+            
+            var infoWindow = new google.maps.InfoWindow({
+                content: `<strong>${l.title}</strong><br>
+                          <a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(l.address)}" 
+                             target="_blank">구글 맵에서 보기</a>`
+            });
+
+            marker.addListener('click', function() {
+                infoWindow.open(map, marker);
+            });
+
+            new MarkerLabel({map:map,position:l.position,text:l.title});
+            markers.push({marker: marker, location: l});
+        }
+
+        function geocodeAddress(l,i){
+            geocoder.geocode({'address':l.address},function(r,s){
+                if(s==='OK'){l.position=r[0].geometry.location;addMarker(l,i);}
+                else console.error('Geocode was not successful for the following reason: '+s);
+            });
+        }
+
+        function zoomToLocation(i){
+            geocoder.geocode({'address':locations[i].address},function(r,s){
+                if(s==='OK'){map.setCenter(r[0].geometry.location);map.setZoom(15);}
+                else console.error('Geocode was not successful for the following reason: '+s);
+            });
+        }
+
+        function resetMap(){
+            map.setCenter({lat:-8.5,lng:115.2});
+            map.setZoom(10);
+            showAllMarkers();
+        }
+
+        function showAllMarkers() {
+            markers.forEach(m => m.marker.setMap(map));
+        }
+
+        function filterByDay(){
+            var day = parseInt(document.getElementById('dayFilter').value);
+            markers.forEach(m => {
+                if(day === 0 || m.location.day.includes(day)){
+                    m.marker.setMap(map);
+                } else {
+                    m.marker.setMap(null);
+                }
+            });
+
+            if(day !== 0){
+                var dayLocations = locations.filter(l => l.day.includes(day));
+                if(dayLocations.length > 0){
+                    geocoder.geocode({'address': dayLocations[0].address}, function(results, status) {
+                        if (status === 'OK') {
+                            map.setCenter(results[0].geometry.location);
+                            map.setZoom(12);
+                        }
+                    });
+                }
+            } else {
+                resetMap();
+            }
+
+            var rows = document.getElementById('scheduleTable').getElementsByTagName('tr');
+            for(var i = 1; i < rows.length; i++){
+                if(day === 0 || rows[i].cells[0].innerText.includes(day + '일차')){
+                    rows[i].style.display = '';
+                } else {
+                    rows[i].style.display = 'none';
+                }
+            }
+        }
+    </script>
+</head>
+<body onload="initMap()">
+    <div id="map"></div>
+    <div id="schedule">
+        <h1 onclick="resetMap()">발리신혼여행 일정</h1>
+        <p>일정을 클릭하면 지도 이동 가능 / 제목 클릭 시 전체 지도 보기</p>
+        <select id="dayFilter" onchange="filterByDay()">
+            <option value="0">전체 일정 보기</option>
+            <option value="1">1일차 일정</option>
+            <option value="2">2일차 일정</option>
+            <option value="3">3일차 일정</option>
+            <option value="4">4일차 일정</option>
+            <option value="5">5일차 일정</option>
+            <option value="6">6일차 일정</option>
+        </select>
+        <table id="scheduleTable">
+            <tr>
+                <th>일정</th>
+                <th>위치</th>
+                <th>숙소/관광지</th>
+                <th>비고</th>
+            </tr>
+            <tr class="day1" onclick="zoomToLocation(0)">
+                <td>1일차</td>
+                <td>덴파사르 공항</td>
+                <td>-</td>
+                <td>도착</td>
+            </tr>
+            <tr class="day1" onclick="zoomToLocation(1)">
+                <td>1일차</td>
+                <td>짱구</td>
+                <td>체사 짱구</td>
+                <td>숙박</td>
+            </tr>
+            <tr class="day2-3" onclick="zoomToLocation(2)">
+                <td>2일차</td>
+                <td>우붓</td>
+                <td>비다다리 빌라스</td>
+                <td>숙박</td>
+            </tr>
+            <tr class="day2-3" onclick="zoomToLocation(4)">
+                <td>2일차</td>
+                <td>우붓</td>
+                <td>몽키 포레스트</td>
+                <td>관광</td>
+            </tr>
+            <tr class="day2-3" onclick="zoomToLocation(5)">
+                <td>2일차</td>
+                <td>테갈랄랑</td>
+                <td>알라스 하룸</td>
+                <td>관광</td>
+            </tr>
+            <tr class="day2-3" onclick="zoomToLocation(2)">
+                <td>3일차</td>
+                <td>우붓</td>
+                <td>비다다리 빌라스</td>
+                <td>숙박</td>
+            </tr>
+            <tr class="day2-3" onclick="zoomToLocation(6)">
+                <td>3일차</td>
+                <td>키타만</td>
+                <td>바투르 산</td>
+                <td>관광</td>
+            </tr>
+            <tr class="day2-3" onclick="zoomToLocation(7)">
+                <td>3일차</td>
+                <td>우붓</td>
+                <td>우붓 시장</td>
+                <td>관광</td>
+            </tr>
+            <tr class="day4-5" onclick="zoomToLocation(3)">
+                <td>4일차</td>
+                <td>짐바란</td>
+                <td>주메이라 발리</td>
+                <td>숙박</td>
+            </tr>
+            <tr class="day4-5" onclick="zoomToLocation(3)">
+                <td>5일차</td>
+                <td>짐바란</td>
+                <td>주메이라 발리</td>
+                <td>숙박</td>
+            </tr>
+            <tr class="day6" onclick="zoomToLocation(8)">
+                <td>6일차</td>
+                <td>쿠타</td>
+                <td>워터봄 발리</td>
+                <td>관광</td>
+            </tr>
+            <tr class="day6" onclick="zoomToLocation(9)">
+                <td>6일차</td>
+                <td>덴파사르 공항</td>
+                <td>-</td>
+                <td>귀국</td>
+            </tr>
+        </table>
+    </div>
+</body>
+</html>
